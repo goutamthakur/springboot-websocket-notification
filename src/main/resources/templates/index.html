@@ -14,10 +14,15 @@
 
 <script>
     let stompClient = null;
+    let reconnectInterval = 1000;
 
     function connect() {
         const socket = new SockJS('http://localhost:8080/ws');
         stompClient = Stomp.over(socket);
+
+        stompClient.debug = null;
+        stompClient.heartbeat.outgoing = 10000;
+        stompClient.heartbeat.incoming = 10000;
 
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);  // Log the successful connection
@@ -25,7 +30,8 @@
                 showNotification(message.body);  // Handle incoming messages
             });
         }, function (error) {
-            console.error('WebSocket connection error: ' + error);  // Log WebSocket errors
+            console.error('WebSocket connection error: ' + error);
+            setTimeout(connect, reconnectInterval);
         });
     }
 
